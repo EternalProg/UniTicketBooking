@@ -9,6 +9,7 @@ import { registerErrorHandler } from "./plugins/error-handler.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { eventsRoutes } from "./modules/events/events.routes.js";
 import { bookingsRoutes } from "./modules/bookings/bookings.routes.js";
+import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { loggerConfig } from "./lib/logger.js";
 import { prisma } from "./lib/prisma.js";
 import { getRedis } from "./lib/redis.js";
@@ -63,6 +64,7 @@ export async function buildApp() {
   authRoutes(app, API_PREFIX);
   eventsRoutes(app, API_PREFIX);
   bookingsRoutes(app, API_PREFIX);
+  adminRoutes(app, API_PREFIX);
 
   return app;
 }
