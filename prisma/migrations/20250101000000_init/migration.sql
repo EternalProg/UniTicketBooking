@@ -16,7 +16,7 @@ CREATE TABLE `User` (
 CREATE TABLE `Event` (
     `id` VARCHAR(191) NOT NULL,
     `title` VARCHAR(191) NOT NULL,
-    `description` VARCHAR(191) NOT NULL,
+    `description` TEXT NOT NULL,
     `date` DATETIME(3) NOT NULL,
     `location` VARCHAR(191) NOT NULL,
     `totalTickets` INTEGER NOT NULL,
