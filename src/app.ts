@@ -10,6 +10,8 @@ import { authRoutes } from "./modules/auth/auth.routes.js";
 import { eventsRoutes } from "./modules/events/events.routes.js";
 import { bookingsRoutes } from "./modules/bookings/bookings.routes.js";
 import { loggerConfig } from "./lib/logger.js";
+import { prisma } from "./lib/prisma.js";
+import { getRedis } from "./lib/redis.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -26,7 +28,36 @@ export async function buildApp() {
   registerErrorHandler(app);
 
   app.get("/health", async () => {
-    return { status: "ok", timestamp: new Date().toISOString() };
+    const checks: Record<string, string> = {};
+
+    checks.server = "ok";
+
+    try {
+      await prisma.$queryRawUnsafe("SELECT 1");
+      checks.database = "ok";
+    } catch {
+      checks.database = "error";
+    }
+
+    try {
+      const redis = getRedis();
+      if (redis.status === "ready") {
+        await redis.ping();
+        checks.redis = "ok";
+      } else {
+        checks.redis = "disconnected";
+      }
+    } catch {
+      checks.redis = "error";
+    }
+
+    const allOk = Object.values(checks).every((v) => v === "ok");
+
+    return {
+      status: allOk ? "ok" : "degraded",
+      checks,
+      timestamp: new Date().toISOString(),
+    };
   });
 
   authRoutes(app, API_PREFIX);
