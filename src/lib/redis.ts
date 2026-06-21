@@ -1,5 +1,6 @@
 import { Redis } from "ioredis";
 import { env } from "../config/env.js";
+import { logger } from "./logger.js";
 
 let redis: Redis | null = null;
 
@@ -22,9 +23,9 @@ export function getRedis(): Redis {
 export async function connectRedis(): Promise<void> {
   try {
     await getRedis().connect();
-    console.warn("Connected to Redis");
+    logger.info("Connected to Redis");
   } catch {
-    console.warn("Redis unavailable — running without cache/blacklist");
+    logger.warn("Redis unavailable — running without cache/blacklist");
   }
 }
 

@@ -14,7 +14,7 @@ function isFastifyError(error: unknown): error is FastifyError {
 
 export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler(
-    (error: FastifyError | ZodError, _request: FastifyRequest, reply: FastifyReply) => {
+    (error: FastifyError | ZodError, request: FastifyRequest, reply: FastifyReply) => {
       const statusCode =
         (error instanceof ZodError)
           ? 400
@@ -39,7 +39,7 @@ export function registerErrorHandler(app: FastifyInstance): void {
       }
 
       if (response.statusCode >= 500) {
-        console.error("Internal server error:", error);
+        request.log.error({ err: error }, "Internal server error");
       }
 
       return reply.status(response.statusCode).send(response);

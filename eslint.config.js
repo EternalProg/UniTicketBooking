@@ -26,7 +26,7 @@ export default [
         "error",
         { prefer: "type-imports" },
       ],
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+      "no-console": ["warn", { allow: ["error"] }],
     },
   },
   prettier,

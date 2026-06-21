@@ -1,5 +1,4 @@
 import Fastify from "fastify";
-import { env } from "./config/env.js";
 import { API_PREFIX } from "./config/constants.js";
 import { registerCors } from "./plugins/cors.js";
 import { registerSwagger } from "./plugins/swagger.js";
@@ -7,20 +6,10 @@ import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { eventsRoutes } from "./modules/events/events.routes.js";
+import { loggerConfig } from "./lib/logger.js";
 
 export async function buildApp() {
-  const app = Fastify({
-    logger: {
-      level: env.NODE_ENV === "production" ? "info" : "debug",
-      transport:
-        env.NODE_ENV !== "production"
-          ? {
-              target: "pino-pretty",
-              options: { colorize: true },
-            }
-          : undefined,
-    },
-  });
+  const app = Fastify({ logger: loggerConfig });
 
   await registerCors(app);
   await registerAuth(app);
