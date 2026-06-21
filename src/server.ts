@@ -1,6 +1,7 @@
 import { buildApp } from "./app.js";
 import { env } from "./config/env.js";
-import { connectRedis } from "./lib/redis.js";
+import { connectRedis, disconnectRedis } from "./lib/redis.js";
+import { prisma } from "./lib/prisma.js";
 
 async function start() {
   await connectRedis();
@@ -14,6 +15,17 @@ async function start() {
     app.log.error(err);
     process.exit(1);
   }
+
+  const shutdown = async (signal: string) => {
+    app.log.info(`Received ${signal}, shutting down gracefully...`);
+    await app.close();
+    await disconnectRedis();
+    await prisma.$disconnect();
+    process.exit(0);
+  };
+
+  process.on("SIGTERM", () => void shutdown("SIGTERM"));
+  process.on("SIGINT", () => void shutdown("SIGINT"));
 }
 
 start();
