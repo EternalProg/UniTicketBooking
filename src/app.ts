@@ -1,10 +1,12 @@
 import Fastify from "fastify";
-import { type ZodTypeProvider } from "fastify-type-provider-zod";
 import { env } from "./config/env.js";
+import { API_PREFIX } from "./config/constants.js";
 import { registerCors } from "./plugins/cors.js";
 import { registerSwagger } from "./plugins/swagger.js";
 import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
+import { authRoutes } from "./modules/auth/auth.routes.js";
+import { eventsRoutes } from "./modules/events/events.routes.js";
 
 export async function buildApp() {
   const app = Fastify({
@@ -18,7 +20,7 @@ export async function buildApp() {
             }
           : undefined,
     },
-  }).withTypeProvider<ZodTypeProvider>();
+  });
 
   await registerCors(app);
   await registerAuth(app);
@@ -28,6 +30,14 @@ export async function buildApp() {
   app.get("/health", async () => {
     return { status: "ok", timestamp: new Date().toISOString() };
   });
+
+  await app.register(
+    async (instance) => {
+      await authRoutes(instance);
+      await eventsRoutes(instance);
+    },
+    { prefix: API_PREFIX },
+  );
 
   return app;
 }

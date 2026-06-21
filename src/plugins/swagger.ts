@@ -3,7 +3,6 @@ import swaggerPlugin from "@fastify/swagger";
 import swaggerUiPlugin from "@fastify/swagger-ui";
 import { env } from "../config/env.js";
 import { SWAGGER_PATH } from "../config/constants.js";
-import { jsonSchemaTransform } from "fastify-type-provider-zod";
 
 export async function registerSwagger(app: FastifyInstance): Promise<void> {
   await app.register(swaggerPlugin, {
@@ -32,7 +31,6 @@ export async function registerSwagger(app: FastifyInstance): Promise<void> {
         },
       },
     },
-    transform: jsonSchemaTransform,
   });
 
   await app.register(swaggerUiPlugin, {
