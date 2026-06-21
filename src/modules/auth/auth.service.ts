@@ -1,10 +1,14 @@
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma.js";
-import type { FastifyInstance } from "fastify";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../../lib/jwt.js";
+import { blacklistToken } from "../../lib/redis.js";
 
 export class AuthService {
-  constructor(private app: FastifyInstance) {}
-
   async register(data: { email: string; password: string; name: string }) {
     const existing = await prisma.user.findUnique({
       where: { email: data.email },
@@ -40,20 +44,24 @@ export class AuthService {
       throw new UnauthorizedError("Invalid email or password");
     }
 
-    const tokens = this.app.generateTokens({
+    const jti = crypto.randomUUID();
+    const accessToken = generateAccessToken({
       id: user.id,
       role: user.role,
+      jti,
     });
+    const refreshToken = generateRefreshToken({ id: user.id, jti });
 
     return {
-      ...tokens,
+      accessToken,
+      refreshToken,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     };
   }
 
   async refreshToken(refreshToken: string) {
     try {
-      const decoded = this.app.refresh.verify(refreshToken) as { id: string; jti: string };
+      const decoded = verifyRefreshToken(refreshToken);
 
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
@@ -64,7 +72,7 @@ export class AuthService {
       }
 
       const jti = crypto.randomUUID();
-      const accessToken = this.app.jwt.sign({
+      const accessToken = generateAccessToken({
         id: user.id,
         role: user.role,
         jti,
@@ -75,6 +83,10 @@ export class AuthService {
       if (err instanceof UnauthorizedError) throw err;
       throw new UnauthorizedError("Invalid or expired refresh token");
     }
+  }
+
+  async logout(jti: string): Promise<void> {
+    await blacklistToken(jti, 900);
   }
 
   async getMe(userId: string) {

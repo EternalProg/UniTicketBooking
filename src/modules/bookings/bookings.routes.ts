@@ -13,12 +13,12 @@ import { toJsonSchema } from "../../lib/schema-helper.js";
 import { authenticate } from "../../middleware/authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
+export async function bookingsRoutes(app: FastifyInstance, prefix: string): Promise<void> {
   const service = new BookingsService();
   const controller = new BookingsController(service);
 
   app.post(
-    "/bookings",
+    `${prefix}/bookings`,
     {
       schema: {
         tags: ["Bookings"],
@@ -33,7 +33,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get(
-    "/bookings",
+    `${prefix}/bookings`,
     {
       schema: {
         tags: ["Bookings"],
@@ -48,7 +48,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get(
-    "/bookings/:id",
+    `${prefix}/bookings/:id`,
     {
       schema: {
         tags: ["Bookings"],
@@ -63,7 +63,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.patch(
-    "/bookings/:id/cancel",
+    `${prefix}/bookings/:id/cancel`,
     {
       schema: {
         tags: ["Bookings"],
@@ -86,7 +86,7 @@ export async function bookingsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get(
-    "/admin/bookings",
+    `${prefix}/admin/bookings`,
     {
       schema: {
         tags: ["Bookings"],

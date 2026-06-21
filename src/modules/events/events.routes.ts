@@ -14,12 +14,12 @@ import { toJsonSchema } from "../../lib/schema-helper.js";
 import { authenticate } from "../../middleware/authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-export async function eventsRoutes(app: FastifyInstance): Promise<void> {
+export async function eventsRoutes(app: FastifyInstance, prefix: string): Promise<void> {
   const service = new EventsService();
   const controller = new EventsController(service);
 
   app.get(
-    "/events",
+    `${prefix}/events`,
     {
       schema: {
         tags: ["Events"],
@@ -32,7 +32,7 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get(
-    "/events/:id",
+    `${prefix}/events/:id`,
     {
       schema: {
         tags: ["Events"],
@@ -45,7 +45,7 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.post(
-    "/events",
+    `${prefix}/events`,
     {
       schema: {
         tags: ["Events"],
@@ -60,7 +60,7 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.put(
-    "/events/:id",
+    `${prefix}/events/:id`,
     {
       schema: {
         tags: ["Events"],
@@ -75,7 +75,7 @@ export async function eventsRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.delete(
-    "/events/:id",
+    `${prefix}/events/:id`,
     {
       schema: {
         tags: ["Events"],

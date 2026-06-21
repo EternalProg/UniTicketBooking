@@ -1,7 +1,9 @@
 import { buildApp } from "./app.js";
 import { env } from "./config/env.js";
+import { connectRedis, disconnectRedis } from "./lib/redis.js";
 
 async function start() {
+  await connectRedis();
   const app = await buildApp();
 
   try {

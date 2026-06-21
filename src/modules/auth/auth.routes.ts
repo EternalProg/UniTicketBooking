@@ -13,12 +13,12 @@ import {
 import { toJsonSchema } from "../../lib/schema-helper.js";
 import { authenticate } from "../../middleware/authenticate.js";
 
-export async function authRoutes(app: FastifyInstance): Promise<void> {
-  const service = new AuthService(app);
+export async function authRoutes(app: FastifyInstance, prefix: string): Promise<void> {
+  const service = new AuthService();
   const controller = new AuthController(service);
 
   app.post(
-    "/auth/register",
+    `${prefix}/auth/register`,
     {
       schema: {
         tags: ["Auth"],
@@ -31,7 +31,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.post(
-    "/auth/login",
+    `${prefix}/auth/login`,
     {
       schema: {
         tags: ["Auth"],
@@ -44,7 +44,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.post(
-    "/auth/refresh",
+    `${prefix}/auth/refresh`,
     {
       schema: {
         tags: ["Auth"],
@@ -57,7 +57,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.post(
-    "/auth/logout",
+    `${prefix}/auth/logout`,
     {
       schema: {
         tags: ["Auth"],
@@ -76,7 +76,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
   );
 
   app.get(
-    "/auth/me",
+    `${prefix}/auth/me`,
     {
       schema: {
         tags: ["Auth"],
