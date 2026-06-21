@@ -20,7 +20,7 @@ A server-side for University Ticket Booking application to different events. The
 | Language          | TypeScript 6                                            |
 | Framework         | Fastify 5                                               |
 | Database          | MySQL 8                                                 |
-| ORM               | Prisma 7 (MariaDB adapter)                              |
+| ORM               | Prisma 7                               |
 | Validation        | Zod 4                                                   |
 | Authentication    | JWT (access + refresh tokens), bcryptjs                 |
 | Cache             | Redis 7, ioredis                                        |
@@ -102,7 +102,7 @@ npm test
 | Мова             | TypeScript 6                                          |
 | Фреймворк        | Fastify 5                                             |
 | База даних       | MySQL 8                                               |
-| ORM              | Prisma 7 (MariaDB adapter)                            |
+| ORM              | Prisma 7                             |
 | Валідація        | Zod 4                                                 |
 | Автентифікація   | JWT (access + refresh tokens), bcryptjs               |
 | Кешування        | Redis 7, ioredis                                      |
