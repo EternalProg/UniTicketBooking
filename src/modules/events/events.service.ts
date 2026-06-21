@@ -1,4 +1,11 @@
 import { prisma } from "../../lib/prisma.js";
+import {
+  cacheEventList,
+  getCachedEventList,
+  cacheEvent,
+  getCachedEvent,
+  invalidateEventCache,
+} from "../../lib/redis.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
 export class EventsService {
@@ -10,6 +17,13 @@ export class EventsService {
     dateFrom?: string;
     dateTo?: string;
   }) {
+    const cacheKey = params as unknown as Record<string, unknown>;
+    const cached = await getCachedEventList<{
+      data: ReturnType<typeof serializeEvent>[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>(cacheKey);
+    if (cached) return cached;
+
     const where: Prisma.EventWhereInput = {};
 
     if (params.category) {
@@ -44,7 +58,7 @@ export class EventsService {
       prisma.event.count({ where }),
     ]);
 
-    return {
+    const result = {
       data: data.map(serializeEvent),
       pagination: {
         page: params.page,
@@ -53,9 +67,15 @@ export class EventsService {
         totalPages: Math.ceil(total / params.limit),
       },
     };
+
+    await cacheEventList(cacheKey, result);
+    return result;
   }
 
   async getById(id: string) {
+    const cached = await getCachedEvent<ReturnType<typeof serializeEvent>>(id);
+    if (cached) return cached;
+
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
@@ -65,7 +85,9 @@ export class EventsService {
 
     if (!event) return null;
 
-    return serializeEvent(event);
+    const result = serializeEvent(event);
+    await cacheEvent(id, result);
+    return result;
   }
 
   async create(data: {
@@ -97,6 +119,7 @@ export class EventsService {
       },
     });
 
+    await invalidateEventCache();
     return serializeEvent(event);
   }
 
@@ -139,6 +162,7 @@ export class EventsService {
       },
     });
 
+    await invalidateEventCache(id);
     return serializeEvent(event);
   }
 
@@ -147,6 +171,7 @@ export class EventsService {
     if (!existing) return false;
 
     await prisma.event.delete({ where: { id } });
+    await invalidateEventCache(id);
     return true;
   }
 }

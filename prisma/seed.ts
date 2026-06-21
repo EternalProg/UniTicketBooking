@@ -28,7 +28,7 @@ async function main() {
     create: {
       email: "admin@university.edu",
       password: adminPassword,
-      name: "Admin User",
+      name: "Адміністратор",
       role: "ADMIN",
     },
   });
@@ -42,7 +42,7 @@ async function main() {
     create: {
       email: "user@example.com",
       password: userPassword,
-      name: "Test User",
+      name: "Тестовий Користувач",
       role: "USER",
     },
   });
@@ -51,65 +51,65 @@ async function main() {
 
   const events = [
     {
-      title: "Spring Music Concert",
-      description: "Annual spring concert featuring university orchestra and choir",
+      title: "Весняний музичний концерт",
+      description: "Щорічний весняний концерт за участю університетського оркестру та хору",
       date: new Date("2026-05-15T18:00:00Z"),
-      location: "University Main Hall",
+      location: "Головна зала університету",
       totalTickets: 200,
       availableTickets: 200,
-      price: 15.0,
-      category: "Music",
+      price: 150.0,
+      category: "Музика",
       createdById: admin.id,
     },
     {
-      title: "Theatre Performance: Hamlet",
-      description: "Student theatre group presents Shakespeare's classic tragedy",
+      title: "Театральна вистава: Гамлет",
+      description: "Студентський театральний гурт представляє класичну трагедію Шекспіра",
       date: new Date("2026-04-20T19:30:00Z"),
-      location: "University Theatre",
+      location: "Університетський театр",
       totalTickets: 150,
       availableTickets: 150,
-      price: 10.0,
-      category: "Theatre",
+      price: 80.0,
+      category: "Театр",
       createdById: admin.id,
     },
     {
-      title: "Art Exhibition: Modern Perspectives",
-      description: "Showcase of student artwork exploring contemporary themes",
+      title: "Виставка мистецтв: Сучасні перспективи",
+      description: "Експозиція студентських робіт, що досліджують сучасні теми",
       date: new Date("2026-06-01T10:00:00Z"),
-      location: "University Art Gallery",
+      location: "Художня галерея університету",
       totalTickets: 100,
       availableTickets: 100,
-      price: 5.0,
-      category: "Art",
+      price: 50.0,
+      category: "Мистецтво",
       createdById: admin.id,
     },
     {
-      title: "Science Week Opening Ceremony",
-      description: "Keynote speech and demonstrations to open the annual Science Week",
+      title: "Відкриття Тижня науки",
+      description: "Ключова доповідь та демонстрації на відкритті щорічного Тижня науки",
       date: new Date("2026-03-10T09:00:00Z"),
-      location: "University Conference Center",
+      location: "Конференц-центр університету",
       totalTickets: 300,
       availableTickets: 300,
       price: 0,
-      category: "Science",
+      category: "Наука",
       createdById: admin.id,
     },
     {
-      title: "Dance Showcase: Rhythms of the World",
-      description: "Traditional and modern dance performances from around the globe",
+      title: "Танцювальне шоу: Ритми світу",
+      description: "Традиційні та сучасні танцювальні виступи з різних куточків світу",
       date: new Date("2026-05-30T17:00:00Z"),
-      location: "University Sports Complex",
+      location: "Спортивний комплекс університету",
       totalTickets: 250,
       availableTickets: 250,
-      price: 8.0,
-      category: "Dance",
+      price: 100.0,
+      category: "Танець",
       createdById: admin.id,
     },
   ];
 
   for (const eventData of events) {
     const event = await prisma.event.create({ data: eventData });
-    console.log(`Created event: ${event.title} ($${event.price})`);
+    console.log(`Created event: ${event.title} (₴${event.price})`);
   }
 
   console.log("Seeding complete!");

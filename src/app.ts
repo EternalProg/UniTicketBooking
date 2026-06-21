@@ -6,6 +6,7 @@ import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { eventsRoutes } from "./modules/events/events.routes.js";
+import { bookingsRoutes } from "./modules/bookings/bookings.routes.js";
 import { loggerConfig } from "./lib/logger.js";
 
 export async function buildApp() {
@@ -24,6 +25,7 @@ export async function buildApp() {
     async (instance) => {
       await authRoutes(instance);
       await eventsRoutes(instance);
+      await bookingsRoutes(instance);
     },
     { prefix: API_PREFIX },
   );
