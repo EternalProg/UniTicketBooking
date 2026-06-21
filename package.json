@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "postbuild": "node scripts/fix-prisma-imports.mjs",
     "start": "node dist/server.js",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
