@@ -1,0 +1,11 @@
+node_modules
+.git
+.gitignore
+dist
+src/generated
+.env
+.env.example
+*.log
+.DS_Store
+.vitest
+report/
