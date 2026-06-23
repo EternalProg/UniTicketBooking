@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { BookingsController } from "./bookings.controller.js";
-import { BookingsService } from "./bookings.service.js";
+import type { BookingsServiceContract } from "../../app-contracts.js";
 import {
   createBookingBodySchema,
   bookingResponseSchema,
@@ -10,11 +10,19 @@ import {
   bookingIdParamSchema,
 } from "./bookings.schema.js";
 import { toJsonSchema } from "../../lib/schema-helper.js";
-import { authenticate } from "../../middleware/authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-export async function bookingsRoutes(app: FastifyInstance, prefix: string): Promise<void> {
-  const service = new BookingsService();
+type AuthenticateHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => Promise<void>;
+
+export async function bookingsRoutes(
+  app: FastifyInstance,
+  prefix: string,
+  service: BookingsServiceContract,
+  authenticate: AuthenticateHandler,
+): Promise<void> {
   const controller = new BookingsController(service);
 
   app.post(

@@ -1,7 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { AuthService } from "./auth.service.js";
+import type { AuthServiceContract } from "../../app-contracts.js";
 import { UnauthorizedError, ConflictError } from "./auth.service.js";
-import { blacklistToken } from "../../lib/redis.js";
 import type { z } from "zod";
 import type {
   registerBodySchema,
@@ -10,7 +9,7 @@ import type {
 } from "./auth.schema.js";
 
 export class AuthController {
-  constructor(private service: AuthService) {}
+  constructor(private service: AuthServiceContract) {}
 
   register = async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -68,7 +67,7 @@ export class AuthController {
     if (user?.jti) {
       const ttl = parseJwtTtl(request);
       if (ttl > 0) {
-        await blacklistToken(user.jti, ttl);
+        await this.service.logout(user.jti, ttl);
       }
     }
     return reply.status(200).send({ message: "Logged out successfully" });
@@ -85,9 +84,7 @@ function parseJwtTtl(request: FastifyRequest): number {
   try {
     const token = request.headers.authorization?.replace("Bearer ", "");
     if (!token) return 0;
-    const payload = JSON.parse(
-      Buffer.from(token.split(".")[1]!, "base64url").toString(),
-    );
+    const payload = JSON.parse(Buffer.from(token.split(".")[1]!, "base64url").toString());
     const exp = payload.exp as number;
     return Math.max(0, exp - Math.floor(Date.now() / 1000));
   } catch {

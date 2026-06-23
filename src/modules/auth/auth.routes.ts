@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AuthController } from "./auth.controller.js";
-import { AuthService } from "./auth.service.js";
+import type { AuthServiceContract } from "../../app-contracts.js";
 import {
   registerBodySchema,
   registerResponseSchema,
@@ -11,10 +11,18 @@ import {
   meResponseSchema,
 } from "./auth.schema.js";
 import { toJsonSchema } from "../../lib/schema-helper.js";
-import { authenticate } from "../../middleware/authenticate.js";
 
-export async function authRoutes(app: FastifyInstance, prefix: string): Promise<void> {
-  const service = new AuthService();
+type AuthenticateHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => Promise<void>;
+
+export async function authRoutes(
+  app: FastifyInstance,
+  prefix: string,
+  service: AuthServiceContract,
+  authenticate: AuthenticateHandler,
+): Promise<void> {
   const controller = new AuthController(service);
 
   app.post(

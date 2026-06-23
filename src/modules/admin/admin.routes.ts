@@ -1,13 +1,21 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AdminController } from "./admin.controller.js";
-import { AdminService } from "./admin.service.js";
+import type { AdminServiceContract } from "../../app-contracts.js";
 import { statsResponseSchema } from "./admin.schema.js";
 import { toJsonSchema } from "../../lib/schema-helper.js";
-import { authenticate } from "../../middleware/authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-export async function adminRoutes(app: FastifyInstance, prefix: string): Promise<void> {
-  const service = new AdminService();
+type AuthenticateHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => Promise<void>;
+
+export async function adminRoutes(
+  app: FastifyInstance,
+  prefix: string,
+  service: AdminServiceContract,
+  authenticate: AuthenticateHandler,
+): Promise<void> {
   const controller = new AdminController(service);
 
   app.get(

@@ -1,8 +1,9 @@
 import { prisma } from "../../lib/prisma.js";
 import { invalidateEventCache } from "../../lib/redis.js";
+import type { BookingsServiceContract } from "../../app-contracts.js";
 import { BookingStatus, type Prisma } from "../../generated/prisma/client.js";
 
-export class BookingsService {
+export class BookingsService implements BookingsServiceContract {
   async create(userId: string, eventId: string, quantity: number) {
     return prisma.$transaction(async (tx) => {
       const [event] = await tx.$queryRawUnsafe<
@@ -14,10 +15,7 @@ export class BookingsService {
       }
 
       if (event.availableTickets < quantity) {
-        throw new BookingError(
-          `Only ${event.availableTickets} tickets available`,
-          409,
-        );
+        throw new BookingError(`Only ${event.availableTickets} tickets available`, 409);
       }
 
       const existing = await tx.booking.findUnique({
@@ -37,7 +35,15 @@ export class BookingsService {
             totalPrice: Number(event.price) * quantity,
           },
           include: {
-            event: { select: { id: true, title: true, date: true, location: true, imageUrl: true } },
+            event: {
+              select: {
+                id: true,
+                title: true,
+                date: true,
+                location: true,
+                imageUrl: true,
+              },
+            },
           },
         });
 
@@ -66,7 +72,9 @@ export class BookingsService {
           totalPrice: Number(event.price) * quantity,
         },
         include: {
-          event: { select: { id: true, title: true, date: true, location: true, imageUrl: true } },
+          event: {
+            select: { id: true, title: true, date: true, location: true, imageUrl: true },
+          },
         },
       });
 
@@ -80,11 +88,7 @@ export class BookingsService {
     });
   }
 
-  async findByUser(
-    userId: string,
-    page: number,
-    limit: number,
-  ) {
+  async findByUser(userId: string, page: number, limit: number) {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
@@ -94,7 +98,9 @@ export class BookingsService {
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          event: { select: { id: true, title: true, date: true, location: true, imageUrl: true } },
+          event: {
+            select: { id: true, title: true, date: true, location: true, imageUrl: true },
+          },
         },
       }),
       prisma.booking.count({ where: { userId } }),
@@ -115,7 +121,9 @@ export class BookingsService {
     const booking = await prisma.booking.findUnique({
       where: { id },
       include: {
-        event: { select: { id: true, title: true, date: true, location: true, imageUrl: true } },
+        event: {
+          select: { id: true, title: true, date: true, location: true, imageUrl: true },
+        },
       },
     });
 
@@ -172,7 +180,10 @@ export class BookingsService {
     const where: Prisma.BookingWhereInput = {};
 
     if (params.eventId) where.eventId = params.eventId;
-    if (params.status === BookingStatus.CONFIRMED || params.status === BookingStatus.CANCELLED) {
+    if (
+      params.status === BookingStatus.CONFIRMED ||
+      params.status === BookingStatus.CANCELLED
+    ) {
       where.status = params.status;
     }
 
@@ -218,7 +229,13 @@ function serializeBooking(booking: {
   quantity: number;
   totalPrice: number | { toString(): string };
   status: string;
-  event: { id: string; title: string; date: Date; location: string; imageUrl: string | null };
+  event: {
+    id: string;
+    title: string;
+    date: Date;
+    location: string;
+    imageUrl: string | null;
+  };
   createdAt: Date;
   updatedAt: Date;
 }) {

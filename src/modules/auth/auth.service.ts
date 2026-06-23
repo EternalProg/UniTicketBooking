@@ -1,14 +1,16 @@
 import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma.js";
+import type { AuthServiceContract, TokenBlacklist } from "../../app-contracts.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
 } from "../../lib/jwt.js";
-import { blacklistToken } from "../../lib/redis.js";
 
-export class AuthService {
+export class AuthService implements AuthServiceContract {
+  constructor(private tokenBlacklist: TokenBlacklist) {}
+
   async register(data: { email: string; password: string; name: string }) {
     const existing = await prisma.user.findUnique({
       where: { email: data.email },
@@ -85,8 +87,8 @@ export class AuthService {
     }
   }
 
-  async logout(jti: string): Promise<void> {
-    await blacklistToken(jti, 900);
+  async logout(jti: string, ttlSeconds: number): Promise<void> {
+    await this.tokenBlacklist.blacklist(jti, ttlSeconds);
   }
 
   async getMe(userId: string) {

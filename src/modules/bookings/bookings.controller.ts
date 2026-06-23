@@ -1,5 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { BookingsService, BookingError } from "./bookings.service.js";
+import type { BookingsServiceContract } from "../../app-contracts.js";
+import type { BookingError } from "./bookings.service.js";
 import type { z } from "zod";
 import type {
   createBookingBodySchema,
@@ -9,7 +10,7 @@ import type {
 } from "./bookings.schema.js";
 
 export class BookingsController {
-  constructor(private service: BookingsService) {}
+  constructor(private service: BookingsServiceContract) {}
 
   create = async (request: FastifyRequest, reply: FastifyReply) => {
     const { eventId, quantity } = request.body as z.infer<typeof createBookingBodySchema>;

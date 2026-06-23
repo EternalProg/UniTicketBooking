@@ -1,4 +1,5 @@
 import { prisma } from "../../lib/prisma.js";
+import type { EventsServiceContract } from "../../app-contracts.js";
 import {
   cacheEventList,
   getCachedEventList,
@@ -8,7 +9,7 @@ import {
 } from "../../lib/redis.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
-export class EventsService {
+export class EventsService implements EventsServiceContract {
   async list(params: {
     page: number;
     limit: number;

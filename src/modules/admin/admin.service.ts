@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
+import type { AdminServiceContract } from "../../app-contracts.js";
 
-export class AdminService {
+export class AdminService implements AdminServiceContract {
   async getStats() {
     const [
       totalUsers,

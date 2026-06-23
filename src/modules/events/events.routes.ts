@@ -1,6 +1,6 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { EventsController } from "./events.controller.js";
-import { EventsService } from "./events.service.js";
+import type { EventsServiceContract } from "../../app-contracts.js";
 import {
   createEventBodySchema,
   createEventResponseSchema,
@@ -11,11 +11,19 @@ import {
   eventIdParamSchema,
 } from "./events.schema.js";
 import { toJsonSchema } from "../../lib/schema-helper.js";
-import { authenticate } from "../../middleware/authenticate.js";
 import { authorize } from "../../middleware/authorize.js";
 
-export async function eventsRoutes(app: FastifyInstance, prefix: string): Promise<void> {
-  const service = new EventsService();
+type AuthenticateHandler = (
+  request: FastifyRequest,
+  reply: FastifyReply,
+) => Promise<void>;
+
+export async function eventsRoutes(
+  app: FastifyInstance,
+  prefix: string,
+  service: EventsServiceContract,
+  authenticate: AuthenticateHandler,
+): Promise<void> {
   const controller = new EventsController(service);
 
   app.get(

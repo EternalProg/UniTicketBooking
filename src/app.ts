@@ -1,4 +1,6 @@
 import Fastify from "fastify";
+import type { AppDependencies } from "./app-contracts.js";
+import { createProductionDependencies } from "./app-production.js";
 import { API_PREFIX } from "./config/constants.js";
 import { registerCors } from "./plugins/cors.js";
 import { registerSwagger } from "./plugins/swagger.js";
@@ -11,14 +13,17 @@ import { eventsRoutes } from "./modules/events/events.routes.js";
 import { bookingsRoutes } from "./modules/bookings/bookings.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { loggerConfig } from "./lib/logger.js";
-import { prisma } from "./lib/prisma.js";
-import { getRedis } from "./lib/redis.js";
+import { createAuthenticate } from "./middleware/authenticate.js";
 
-export async function buildApp() {
+export async function buildApp(
+  dependencies: AppDependencies = createProductionDependencies(),
+) {
   const app = Fastify({
     logger: loggerConfig,
-    maxParamLength: 100,
     bodyLimit: 1048576,
+    routerOptions: {
+      maxParamLength: 100,
+    },
   });
 
   await registerHelmet(app);
@@ -28,43 +33,16 @@ export async function buildApp() {
   await registerSwagger(app);
   registerErrorHandler(app);
 
+  const authenticate = createAuthenticate(dependencies.tokenBlacklist);
+
   app.get("/health", async () => {
-    const checks: Record<string, string> = {};
-
-    checks.server = "ok";
-
-    try {
-      await prisma.$queryRawUnsafe("SELECT 1");
-      checks.database = "ok";
-    } catch {
-      checks.database = "error";
-    }
-
-    try {
-      const redis = getRedis();
-      if (redis.status === "ready") {
-        await redis.ping();
-        checks.redis = "ok";
-      } else {
-        checks.redis = "disconnected";
-      }
-    } catch {
-      checks.redis = "error";
-    }
-
-    const allOk = Object.values(checks).every((v) => v === "ok");
-
-    return {
-      status: allOk ? "ok" : "degraded",
-      checks,
-      timestamp: new Date().toISOString(),
-    };
+    return dependencies.healthService.getStatus();
   });
 
-  authRoutes(app, API_PREFIX);
-  eventsRoutes(app, API_PREFIX);
-  bookingsRoutes(app, API_PREFIX);
-  adminRoutes(app, API_PREFIX);
+  await authRoutes(app, API_PREFIX, dependencies.authService, authenticate);
+  await eventsRoutes(app, API_PREFIX, dependencies.eventsService, authenticate);
+  await bookingsRoutes(app, API_PREFIX, dependencies.bookingsService, authenticate);
+  await adminRoutes(app, API_PREFIX, dependencies.adminService, authenticate);
 
   return app;
 }

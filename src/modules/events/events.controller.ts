@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { EventsService } from "./events.service.js";
+import type { EventsServiceContract } from "../../app-contracts.js";
 import type { z } from "zod";
 import type {
   createEventBodySchema,
@@ -9,7 +9,7 @@ import type {
 } from "./events.schema.js";
 
 export class EventsController {
-  constructor(private service: EventsService) {}
+  constructor(private service: EventsServiceContract) {}
 
   list = async (request: FastifyRequest, reply: FastifyReply) => {
     const query = request.query as z.infer<typeof eventListQuerySchema>;
