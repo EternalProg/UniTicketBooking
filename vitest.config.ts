@@ -8,5 +8,11 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     sequence: { concurrent: false },
+    coverage: {
+      provider: "v8",
+      include: ["src/middleware/**/*.ts"],
+      reporter: ["text", "lcov", "html"],
+      reportsDirectory: "./coverage",
+    },
   },
 });
