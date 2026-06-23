@@ -1,6 +1,7 @@
-import { buildApp } from "../app.js";
-import { connectRedis, disconnectRedis } from "../lib/redis.js";
-import { prisma } from "../lib/prisma.js";
+import { beforeAll, beforeEach, afterAll } from "vitest";
+import { buildApp } from "../../app.js";
+import { connectRedis, disconnectRedis } from "../../lib/redis.js";
+import { prisma } from "../../lib/prisma.js";
 import type { FastifyInstance } from "fastify";
 import bcrypt from "bcryptjs";
 
@@ -19,6 +20,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await app.close();
   await disconnectRedis();
   await prisma.$disconnect();
 });
@@ -30,8 +32,20 @@ beforeEach(async () => {
 
   await prisma.user.createMany({
     data: [
-      { id: "test-admin-id", email: "admin@test.com", password: hashedAdminPassword, name: "Admin", role: "ADMIN" },
-      { id: "test-user-id", email: "user@test.com", password: hashedUserPassword, name: "User", role: "USER" },
+      {
+        id: "test-admin-id",
+        email: "admin@test.com",
+        password: hashedAdminPassword,
+        name: "Admin",
+        role: "ADMIN",
+      },
+      {
+        id: "test-user-id",
+        email: "user@test.com",
+        password: hashedUserPassword,
+        name: "User",
+        role: "USER",
+      },
     ],
   });
 
@@ -47,18 +61,6 @@ beforeEach(async () => {
         availableTickets: 100,
         price: 50,
         category: "Music",
-        createdById: "test-admin-id",
-      },
-      {
-        id: "test-event-2",
-        title: "Test Event 2",
-        description: "Description 2",
-        date: new Date("2026-07-01T18:00:00Z"),
-        location: "Location 2",
-        totalTickets: 1,
-        availableTickets: 1,
-        price: 100,
-        category: "Theatre",
         createdById: "test-admin-id",
       },
     ],

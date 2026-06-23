@@ -157,5 +157,5 @@ async function getAccessTokenFromLogin(): Promise<string> {
     payload: { email: "user@test.com", password: "user123" },
   });
   cachedToken = response.json().accessToken as string;
-  return cachedToken!;
+  return cachedToken;
 }

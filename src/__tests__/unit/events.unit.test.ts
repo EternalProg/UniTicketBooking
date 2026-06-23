@@ -4,10 +4,7 @@ import { getAccessToken, getAdminToken } from "./helpers.js";
 
 describe("Events — GET /api/events", () => {
   it("should list events with pagination", async () => {
-    const response = await app.inject({
-      method: "GET",
-      url: "/api/events",
-    });
+    const response = await app.inject({ method: "GET", url: "/api/events" });
     expect(response.statusCode).toBe(200);
     const body = response.json();
     expect(body.data).toHaveLength(2);
@@ -51,19 +48,13 @@ describe("Events — GET /api/events", () => {
 
 describe("Events — GET /api/events/:id", () => {
   it("should return event by id", async () => {
-    const response = await app.inject({
-      method: "GET",
-      url: "/api/events/test-event-1",
-    });
+    const response = await app.inject({ method: "GET", url: "/api/events/test-event-1" });
     expect(response.statusCode).toBe(200);
     expect(response.json().title).toBe("Test Event 1");
   });
 
   it("should return 404 for unknown id", async () => {
-    const response = await app.inject({
-      method: "GET",
-      url: "/api/events/non-existent",
-    });
+    const response = await app.inject({ method: "GET", url: "/api/events/non-existent" });
     expect(response.statusCode).toBe(404);
   });
 });
