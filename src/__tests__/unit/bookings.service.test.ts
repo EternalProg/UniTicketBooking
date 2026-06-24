@@ -71,6 +71,27 @@ function serialize(b: ReturnType<typeof makeBooking>) {
   };
 }
 
+function makeAdminBooking(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "booking-1",
+    eventId: "event-1",
+    userId: "user-1",
+    quantity: 2,
+    totalPrice: 100,
+    status: "CONFIRMED",
+    user: { id: "user-1", name: "User", email: "user@test.com" },
+    event: {
+      id: "event-1",
+      title: "Test Event",
+      date: new Date("2026-06-01T18:00:00Z"),
+      location: "Location",
+    },
+    createdAt: new Date("2026-03-01T00:00:00Z"),
+    updatedAt: new Date("2026-03-01T00:00:00Z"),
+    ...overrides,
+  };
+}
+
 describe("BookingsService", () => {
   let service: BookingsService;
 
@@ -219,9 +240,7 @@ describe("BookingsService", () => {
   });
 
   describe("findAllAdmin", () => {
-    const adminBooking = makeBooking({
-      userId: "user-1",
-      user: { id: "user-1", name: "User", email: "user@test.com" },
+    const adminBooking = makeAdminBooking({
       event: { id: "event-1", title: "Event", date: new Date(), location: "Loc" },
     });
 
