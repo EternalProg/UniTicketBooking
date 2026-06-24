@@ -1,5 +1,6 @@
 import { beforeAll, beforeEach, afterAll } from "vitest";
 import { buildApp } from "../../app.js";
+import { createProductionDependencies } from "../../dependencies.production.js";
 import { connectRedis, disconnectRedis } from "../../lib/redis.js";
 import { prisma } from "../../lib/prisma.js";
 import type { FastifyInstance } from "fastify";
@@ -9,9 +10,26 @@ let app: FastifyInstance;
 let hashedAdminPassword: string;
 let hashedUserPassword: string;
 
+function assertIntegrationDatabase(): void {
+  const databaseUrl = process.env["DATABASE_URL"];
+
+  if (!databaseUrl) {
+    throw new Error("Integration tests require DATABASE_URL.");
+  }
+
+  const databaseName = new URL(databaseUrl).pathname.replace(/^\//, "");
+
+  if (!databaseName.endsWith("_test")) {
+    throw new Error(
+      `Integration tests refused to use non-test database \"${databaseName}\".`,
+    );
+  }
+}
+
 beforeAll(async () => {
+  assertIntegrationDatabase();
   await connectRedis();
-  app = await buildApp();
+  app = await buildApp(createProductionDependencies());
   await app.ready();
   [hashedAdminPassword, hashedUserPassword] = await Promise.all([
     bcrypt.hash("admin123", 4),

@@ -133,6 +133,103 @@ describe("Bookings — PATCH /api/bookings/:id/cancel", () => {
   });
 });
 
+describe("Bookings — GET /api/bookings/:id", () => {
+  it("should return booking by id for the owner", async () => {
+    const token = await getAccessToken(app);
+    const createResp = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { eventId: "test-event-1", quantity: 1 },
+    });
+    const bookingId = createResp.json().id;
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/bookings/${bookingId}`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().id).toBe(bookingId);
+  });
+
+  it("should return 404 for another user's booking", async () => {
+    const token = await getAccessToken(app);
+    const createResp = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { eventId: "test-event-1", quantity: 1 },
+    });
+    const bookingId = createResp.json().id;
+
+    const registerResp = await app.inject({
+      method: "POST",
+      url: "/api/auth/register",
+      payload: { email: "other@test.com", password: "other123", name: "Other" },
+    });
+    const otherId = registerResp.json().id;
+    const otherLogin = await app.inject({
+      method: "POST",
+      url: "/api/auth/login",
+      payload: { email: "other@test.com", password: "other123" },
+    });
+    const otherToken = otherLogin.json().accessToken;
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/bookings/${bookingId}`,
+      headers: { authorization: `Bearer ${otherToken}` },
+    });
+    expect(response.statusCode).toBe(404);
+  });
+});
+
+describe("Bookings — PATCH /api/bookings/:id/cancel (edge cases)", () => {
+  it("should return 403 when cancelling another user's booking", async () => {
+    const userToken = await getAccessToken(app);
+    const createResp = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      headers: { authorization: `Bearer ${userToken}` },
+      payload: { eventId: "test-event-1", quantity: 1 },
+    });
+    const bookingId = createResp.json().id;
+
+    const adminToken = await getAdminToken(app);
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/bookings/${bookingId}/cancel`,
+      headers: { authorization: `Bearer ${adminToken}` },
+    });
+    expect(response.statusCode).toBe(403);
+  });
+
+  it("should return 400 when cancelling an already cancelled booking", async () => {
+    const token = await getAccessToken(app);
+    const createResp = await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      headers: { authorization: `Bearer ${token}` },
+      payload: { eventId: "test-event-1", quantity: 1 },
+    });
+    const bookingId = createResp.json().id;
+
+    await app.inject({
+      method: "PATCH",
+      url: `/api/bookings/${bookingId}/cancel`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/bookings/${bookingId}/cancel`,
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(response.statusCode).toBe(400);
+  });
+});
+
 describe("Bookings — GET /api/admin/bookings", () => {
   it("should list all bookings for admin", async () => {
     const userToken = await getAccessToken(app);
@@ -158,6 +255,65 @@ describe("Bookings — GET /api/admin/bookings", () => {
     const response = await app.inject({
       method: "GET",
       url: "/api/admin/bookings",
+      headers: { authorization: `Bearer ${token}` },
+    });
+    expect(response.statusCode).toBe(403);
+  });
+
+  it("should filter bookings by eventId for admin", async () => {
+    const userToken = await getAccessToken(app);
+    await app.inject({
+      method: "POST",
+      url: "/api/bookings",
+      headers: { authorization: `Bearer ${userToken}` },
+      payload: { eventId: "test-event-1", quantity: 1 },
+    });
+
+    const adminToken = await getAdminToken(app);
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/bookings?eventId=test-event-1",
+      headers: { authorization: `Bearer ${adminToken}` },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.every((b: any) => b.eventId === "test-event-1")).toBe(
+      true,
+    );
+  });
+
+  it("should filter bookings by status for admin", async () => {
+    const adminToken = await getAdminToken(app);
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/bookings?status=CONFIRMED",
+      headers: { authorization: `Bearer ${adminToken}` },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.every((b: any) => b.status === "CONFIRMED")).toBe(true);
+  });
+});
+
+describe("Admin — GET /api/admin/stats", () => {
+  it("should return stats for admin", async () => {
+    const adminToken = await getAdminToken(app);
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/stats",
+      headers: { authorization: `Bearer ${adminToken}` },
+    });
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    expect(body).toHaveProperty("totalUsers");
+    expect(body).toHaveProperty("totalEvents");
+    expect(body).toHaveProperty("totalBookings");
+    expect(body).toHaveProperty("totalRevenue");
+  });
+
+  it("should reject non-admin user with 403", async () => {
+    const token = await getAccessToken(app);
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/admin/stats",
       headers: { authorization: `Bearer ${token}` },
     });
     expect(response.statusCode).toBe(403);

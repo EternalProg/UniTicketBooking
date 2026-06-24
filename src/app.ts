@@ -1,6 +1,5 @@
 import Fastify from "fastify";
 import type { AppDependencies } from "./app-contracts.js";
-import { createProductionDependencies } from "./app-production.js";
 import { API_PREFIX } from "./config/constants.js";
 import { registerCors } from "./plugins/cors.js";
 import { registerSwagger } from "./plugins/swagger.js";
@@ -15,9 +14,7 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { loggerConfig } from "./lib/logger.js";
 import { createAuthenticate } from "./middleware/authenticate.js";
 
-export async function buildApp(
-  dependencies: AppDependencies = createProductionDependencies(),
-) {
+export async function buildApp(dependencies: AppDependencies) {
   const app = Fastify({
     logger: loggerConfig,
     bodyLimit: 1048576,

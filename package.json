@@ -18,11 +18,13 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
+    "db:test:push": "DOTENV_CONFIG_PATH=.env.test NODE_ENV=test prisma db push",
+    "db:test:migrate": "DOTENV_CONFIG_PATH=.env.test NODE_ENV=test prisma migrate deploy",
     "test": "vitest run --dir src/__tests__/unit",
     "test:watch": "vitest --dir src/__tests__/unit",
     "test:coverage": "vitest run --dir src/__tests__/unit --coverage",
-    "test:integration": "vitest run --dir src/__tests__/integration",
-    "test:all": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:all": "npm test && npm run test:integration",
     "prepare": "husky"
   },
   "keywords": [

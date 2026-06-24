@@ -3,5 +3,6 @@ dist/
 src/generated/
 coverage/
 .env
+.env.test
 *.log
 .DS_Store

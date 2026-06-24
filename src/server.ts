@@ -1,11 +1,12 @@
 import { buildApp } from "./app.js";
+import { createProductionDependencies } from "./dependencies.production.js";
 import { env } from "./config/env.js";
 import { connectRedis, disconnectRedis } from "./lib/redis.js";
 import { prisma } from "./lib/prisma.js";
 
 async function start() {
   await connectRedis();
-  const app = await buildApp();
+  const app = await buildApp(createProductionDependencies());
 
   try {
     await app.listen({ port: env.PORT, host: env.HOST });

@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { app } from "./setup.js";
+import { createOptionalAuth } from "../../middleware/authenticate.js";
+import { authorize } from "../../middleware/authorize.js";
 
 describe("Auth — POST /api/auth/register", () => {
   it("should register a new user and return 201", async () => {
@@ -159,3 +161,135 @@ async function getAccessTokenFromLogin(): Promise<string> {
   cachedToken = response.json().accessToken as string;
   return cachedToken;
 }
+
+describe("createOptionalAuth middleware", () => {
+  it("should set user when valid token is provided", async () => {
+    const tokenBlacklist = {
+      blacklist: async () => {},
+      isBlacklisted: async () => false,
+    };
+
+    const optionalAuth = createOptionalAuth(tokenBlacklist);
+
+    const user = { id: "test-id", role: "USER", jti: "test-jti" };
+    const request = {
+      jwtVerify: async () => {
+        (request as any).user = user;
+      },
+      user: undefined as any,
+    };
+    const reply = { status: () => reply, send: () => {} };
+
+    await optionalAuth(request as any, reply as any);
+
+    expect(request.user).toBe(user);
+  });
+
+  it("should clear user when token is blacklisted", async () => {
+    const tokenBlacklist = {
+      blacklist: async () => {},
+      isBlacklisted: async () => true,
+    };
+
+    const optionalAuth = createOptionalAuth(tokenBlacklist);
+
+    const request = {
+      jwtVerify: async () => {
+        (request as any).user = { id: "test-id", role: "USER", jti: "blacklisted-jti" };
+      },
+      user: undefined as any,
+    };
+    const reply = { status: () => reply, send: () => {} };
+
+    await optionalAuth(request as any, reply as any);
+
+    expect(request.user).toBeUndefined();
+  });
+
+  it("should not fail when no token is provided", async () => {
+    const tokenBlacklist = {
+      blacklist: async () => {},
+      isBlacklisted: async () => false,
+    };
+
+    const optionalAuth = createOptionalAuth(tokenBlacklist);
+
+    const request = {
+      jwtVerify: async () => {
+        throw new Error("No token");
+      },
+      user: undefined as any,
+    };
+    const reply = { status: () => reply, send: () => {} };
+
+    await expect(optionalAuth(request as any, reply as any)).resolves.toBeUndefined();
+  });
+});
+
+describe("authorize middleware", () => {
+  it("should return 401 when no user is present", async () => {
+    let statusCode = 0;
+    let sentBody: any = null;
+    const request = { user: undefined };
+    const reply = {
+      status: (code: number) => {
+        statusCode = code;
+        return reply;
+      },
+      send: (body: any) => {
+        sentBody = body;
+      },
+    };
+
+    const handler = authorize("ADMIN");
+    await handler(request as any, reply as any);
+
+    expect(statusCode).toBe(401);
+    expect(sentBody).toEqual({
+      statusCode: 401,
+      error: "Unauthorized",
+      message: "Authentication required",
+    });
+  });
+
+  it("should return 403 when user role is not allowed", async () => {
+    let statusCode = 0;
+    let sentBody: any = null;
+    const request = { user: { role: "USER" } };
+    const reply = {
+      status: (code: number) => {
+        statusCode = code;
+        return reply;
+      },
+      send: (body: any) => {
+        sentBody = body;
+      },
+    };
+
+    const handler = authorize("ADMIN");
+    await handler(request as any, reply as any);
+
+    expect(statusCode).toBe(403);
+    expect(sentBody).toEqual({
+      statusCode: 403,
+      error: "Forbidden",
+      message: "Insufficient permissions",
+    });
+  });
+
+  it("should pass when user role is allowed", async () => {
+    let called = false;
+    const request = { user: { role: "ADMIN" } };
+    const reply = {
+      status: () => reply,
+      send: () => {
+        called = true;
+      },
+    };
+
+    const handler = authorize("ADMIN");
+    await handler(request as any, reply as any);
+
+    expect(called).toBe(false);
+  });
+});

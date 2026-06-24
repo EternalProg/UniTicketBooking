@@ -45,6 +45,7 @@ npm install
 
 # 2. Copy environment variables
 cp .env.example .env
+cp .env.test.example .env.test
 
 # 3. Start MySQL and Redis
 docker compose up mysql redis -d
@@ -52,6 +53,10 @@ docker compose up mysql redis -d
 # 4. Generate Prisma client and create tables
 npm run db:generate
 npm run db:push
+
+# 4a. Create a separate test database once, for example ticket_booking_test,
+# then apply the schema to it
+npm run db:test:push
 
 # 5. (Optional) Seed test data
 npm run db:seed
@@ -82,7 +87,11 @@ docker compose up --build
 
 ```bash
 npm test
+npm run test:integration
 ```
+
+Integration tests load `.env.test` and will refuse to run unless `DATABASE_URL`
+points to a dedicated database whose name ends with `_test`.
 
 ---
 
@@ -127,6 +136,7 @@ npm install
 
 # 2. Скопіювати змінні оточення
 cp .env.example .env
+cp .env.test.example .env.test
 
 # 3. Запустити MySQL та Redis
 docker compose up mysql redis -d
@@ -134,6 +144,10 @@ docker compose up mysql redis -d
 # 4. Згенерувати Prisma клієнт та створити таблиці
 npm run db:generate
 npm run db:push
+
+# 4a. Один раз створити окрему test-базу, наприклад ticket_booking_test,
+# і застосувати до неї схему
+npm run db:test:push
 
 # 5. (Необов'язково) Наповнити тестовими даними
 npm run db:seed
@@ -164,4 +178,8 @@ docker compose up --build
 
 ```bash
 npm test
+npm run test:integration
 ```
+
+Інтеграційні тести завантажують `.env.test` і відмовляються запускатися,
+якщо `DATABASE_URL` не вказує на окрему базу з назвою, що закінчується на `_test`.
