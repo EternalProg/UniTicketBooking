@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../../..");
 const envFilePath = path.join(repoRoot, ".env.test");
 
-const result = dotenv.config({ path: envFilePath, override: false, quiet: true });
+const result = dotenv.config({ path: envFilePath, override: true, quiet: true });
 
 if (result.error) {
   throw new Error(
