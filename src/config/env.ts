@@ -14,6 +14,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().default("redis://localhost:6379"),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
+  ADMIN_EMAIL: z.string().email().default("admin@university.edu"),
+  ADMIN_PASSWORD: z.string().min(1).default("admin123"),
 });
 
 const parsed = envSchema.safeParse(process.env);
