@@ -53,7 +53,7 @@ jobs:
 
       - run: npx prisma migrate deploy
 
-      - run: mysql -h 127.0.0.1 -uroot -prootpass -e "CREATE DATABASE IF NOT EXISTS ticket_booking_test;"
+      - run: mysql -h 127.0.0.1 -uroot -prootpass -e "CREATE DATABASE IF NOT EXISTS ticket_booking_test; GRANT ALL PRIVILEGES ON ticket_booking_test.* TO 'ticket_user'@'%';"
 
       - run: |
           printf 'NODE_ENV=test\nDATABASE_URL=%s\nREDIS_URL=%s\nJWT_ACCESS_SECRET=%s\nJWT_REFRESH_SECRET=%s\n' \
